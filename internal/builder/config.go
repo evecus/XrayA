@@ -56,7 +56,9 @@ func DefaultSettings() Settings {
 }
 
 // Build constructs a complete xray config.json as a JSON byte slice.
-func Build(n *node.Node, s Settings) ([]byte, error) {
+// gid 是 xraya 系统组的 GID，写入 config 日志字段供调试；
+// 防火墙 skgid 规则已在 firewall 包里使用同一 GID，此处无需重复写入。
+func Build(n *node.Node, s Settings, gid uint32) ([]byte, error) {
 	outbound, err := buildOutbound(n)
 	if err != nil {
 		return nil, fmt.Errorf("build outbound: %w", err)
@@ -443,39 +445,45 @@ func hy2Outbound(n *node.Node) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	server := map[string]interface{}{
-		"address":  n.Address,
-		"port":     n.Port,
-		"password": x.Password,
+	// xray-core hysteria2 outbound 正确格式：
+	// protocol 为 "hysteria"，settings 直接含 address/port/version/auth，
+	// streamSettings 中 network 为 "hysteria"，security 为 "tls"。
+	// 参考：https://xtls.github.io/config/outbound-protocols/hysteria2.html
+	settings := map[string]interface{}{
+		"address": n.Address,
+		"port":    n.Port,
+		"version": 2,
+		"auth":    x.Password,
 	}
+
+	tlsSettings := map[string]interface{}{
+		"allowInsecure": x.Insecure,
+		"fingerprint":   "chrome",
+	}
+	if x.SNI != "" {
+		tlsSettings["serverName"] = x.SNI
+	}
+	if x.PinSHA256 != "" {
+		tlsSettings["pinnedPeerCertificateChainSha256"] = x.PinSHA256
+	}
+
+	streamSettings := map[string]interface{}{
+		"network":     "hysteria",
+		"security":    "tls",
+		"tlsSettings": tlsSettings,
+	}
+
 	if x.Obfs != "" {
-		server["obfs"] = map[string]interface{}{
-			"type": x.Obfs,
-			"salamander": map[string]interface{}{
-				"password": x.ObfsParam,
-			},
+		// salamander 混淆通过 hysteria streamSettings 传递
+		streamSettings["hysteriaSettings"] = map[string]interface{}{
+			"obfs": x.Obfs,
 		}
 	}
 
-	// xray-core hysteria2 protocol does NOT use streamSettings.
-	// "network":"hysteria2" is not a valid transport and causes:
-	//   "unknown transport protocol: hysteria2"
-	// TLS options are embedded directly in the server object.
-	if x.SNI != "" {
-		server["sni"] = x.SNI
-	}
-	if x.Insecure {
-		server["insecure"] = true
-	}
-	if x.PinSHA256 != "" {
-		server["pinnedPeerCertificateChainSha256"] = x.PinSHA256
-	}
-
 	return map[string]interface{}{
-		"protocol": "hysteria2",
-		"settings": map[string]interface{}{
-			"servers": []interface{}{server},
-		},
+		"protocol":       "hysteria",
+		"settings":       settings,
+		"streamSettings": streamSettings,
 	}, nil
 }
 func socks5Outbound(n *node.Node) (map[string]interface{}, error) {
