@@ -72,8 +72,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: XrayA
-          name: XrayA v1.0.0
+          tag_name: v1.0.0
+          name: XrayA
           files: |
             xraya-linux-amd64
             xraya-linux-arm64
