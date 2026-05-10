@@ -1,40 +1,95 @@
 package builder
 
 import (
+	"fmt"
 	"strings"
 
-	routingA "github.com/v2rayA/RoutingA"
+	RoutingA "github.com/v2rayA/RoutingA"
 )
 
 // InjectRoutingA parses RoutingA text into xray routing rules.
 func InjectRoutingA(raText string, trafficTags []string) ([]interface{}, error) {
-	parser := routingA.NewParser(strings.TrimSpace(raText))
-	result, err := parser.Parse()
+	lines := strings.Split(strings.TrimSpace(raText), "\n")
+	rules, err := RoutingA.Parse(strings.Join(lines, "\n"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RoutingA parse: %w", err)
 	}
-	var rules []interface{}
-	for _, r := range result.Rules {
+
+	defaultOutbound := "proxy"
+	var xrules []interface{}
+
+	// First pass: pick up "default" define
+	for _, rule := range rules {
+		if d, ok := rule.(RoutingA.Define); ok && d.Name == "default" {
+			if v, ok := d.Value.(string); ok {
+				defaultOutbound = mapOutbound(v)
+			}
+		}
+	}
+
+	// Second pass: convert Routing rules
+	for _, rule := range rules {
+		r, ok := rule.(RoutingA.Routing)
+		if !ok {
+			continue
+		}
 		xrule := map[string]interface{}{
 			"type":        "field",
-			"outboundTag": mapOutbound(r.Outbound),
+			"outboundTag": mapOutbound(r.Out),
 			"inboundTag":  trafficTags,
 		}
-		if len(r.Domain) > 0 {
-			xrule["domain"] = r.Domain
+		var domains, ips, protocols []string
+		var port, network string
+		for _, f := range r.And {
+			switch f.Name {
+			case "domain", "domains":
+				for k, vv := range f.NamedParams {
+					for _, v := range vv {
+						domains = append(domains, fmt.Sprintf("%s:%s", k, v))
+					}
+				}
+				domains = append(domains, f.Params...)
+			case "ip":
+				for k, vv := range f.NamedParams {
+					for _, v := range vv {
+						ips = append(ips, fmt.Sprintf("%s:%s", k, v))
+					}
+				}
+				ips = append(ips, f.Params...)
+			case "port":
+				port = strings.Join(f.Params, ",")
+			case "network":
+				network = strings.Join(f.Params, ",")
+			case "protocol":
+				protocols = f.Params
+			}
 		}
-		if len(r.IP) > 0 {
-			xrule["ip"] = r.IP
+		if len(domains) > 0 {
+			xrule["domain"] = domains
 		}
-		if len(r.Port) > 0 {
-			xrule["port"] = strings.Join(r.Port, ",")
+		if len(ips) > 0 {
+			xrule["ip"] = ips
 		}
-		if r.Protocol != "" {
-			xrule["protocol"] = []string{r.Protocol}
+		if port != "" {
+			xrule["port"] = port
 		}
-		rules = append(rules, xrule)
+		if network != "" {
+			xrule["network"] = network
+		}
+		if len(protocols) > 0 {
+			xrule["protocol"] = protocols
+		}
+		xrules = append(xrules, xrule)
 	}
-	return rules, nil
+
+	// Append catch-all default rule
+	xrules = append(xrules, map[string]interface{}{
+		"type":        "field",
+		"outboundTag": defaultOutbound,
+		"inboundTag":  trafficTags,
+	})
+
+	return xrules, nil
 }
 
 func mapOutbound(o string) string {
