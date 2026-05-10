@@ -9,9 +9,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +25,8 @@ import (
 	"github.com/xraya/xraya/internal/storage"
 	"github.com/xraya/xraya/internal/subscription"
 )
+
+const xrayaGroup = "xraya"
 
 type Status string
 
@@ -73,6 +78,75 @@ func NewManager(dataDir string) (*Manager, error) {
 	_ = db.LoadSetting("settings", &m.settings)
 	_ = db.LoadSetting("state", &m.st)
 	return m, nil
+}
+
+// ── Group helpers ──────────────────────────────────────────────────────────
+// 与 Metaviz 相同的策略：确保 "xraya" system group 存在，
+// 将 xray 进程以该 GID 运行，nftables 用 skgid 识别并跳过其流量。
+
+func ensureXrayaGroup() (uint32, error) {
+	if g, err := user.LookupGroup(xrayaGroup); err == nil {
+		gid, err := strconv.ParseUint(g.Gid, 10, 32)
+		if err != nil {
+			return 0, fmt.Errorf("parse gid %q: %w", g.Gid, err)
+		}
+		return uint32(gid), nil
+	}
+	log.Printf("xraya: group %q not found, creating", xrayaGroup)
+	if path, err := exec.LookPath("groupadd"); err == nil {
+		out, err := exec.Command(path, "--system", xrayaGroup).CombinedOutput()
+		if err != nil {
+			return 0, fmt.Errorf("groupadd: %w (output: %s)", err, strings.TrimSpace(string(out)))
+		}
+		g, err := user.LookupGroup(xrayaGroup)
+		if err != nil {
+			return 0, fmt.Errorf("lookup group after create: %w", err)
+		}
+		gid, err := strconv.ParseUint(g.Gid, 10, 32)
+		if err != nil {
+			return 0, fmt.Errorf("parse gid: %w", err)
+		}
+		return uint32(gid), nil
+	}
+	return writeGroupEntry(xrayaGroup)
+}
+
+func writeGroupEntry(name string) (uint32, error) {
+	const groupFile = "/etc/group"
+	data, err := os.ReadFile(groupFile)
+	if err != nil {
+		return 0, fmt.Errorf("read %s: %w", groupFile, err)
+	}
+	usedGIDs := make(map[uint32]bool)
+	for _, line := range strings.Split(string(data), "\n") {
+		parts := strings.Split(line, ":")
+		if len(parts) < 3 {
+			continue
+		}
+		if gid, err := strconv.ParseUint(parts[2], 10, 32); err == nil {
+			usedGIDs[uint32(gid)] = true
+		}
+	}
+	var chosen uint32
+	for candidate := uint32(500); candidate < 65000; candidate++ {
+		if !usedGIDs[candidate] {
+			chosen = candidate
+			break
+		}
+	}
+	if chosen == 0 {
+		return 0, fmt.Errorf("no free GID available")
+	}
+	entry := fmt.Sprintf("%s:x:%d:\n", name, chosen)
+	f, err := os.OpenFile(groupFile, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return 0, fmt.Errorf("open %s: %w", groupFile, err)
+	}
+	defer f.Close()
+	if _, err := f.WriteString(entry); err != nil {
+		return 0, fmt.Errorf("write %s: %w", groupFile, err)
+	}
+	return chosen, nil
 }
 
 // ── Node CRUD ──────────────────────────────────────────────────────────────
@@ -168,7 +242,6 @@ func (m *Manager) UpdateSubscription(id string) error {
 	if err != nil {
 		return err
 	}
-	// Clear old nodes from this group
 	allNodes, _ := m.ListNodes()
 	for _, n := range allNodes {
 		if n.GroupID == id {
@@ -215,7 +288,13 @@ func (m *Manager) Start(nodeID string) error {
 		return err
 	}
 
-	cfg, err := m.buildConfig(n)
+	// 确保 xraya group 存在，并取得 GID
+	gid, err := ensureXrayaGroup()
+	if err != nil {
+		return fmt.Errorf("xraya group: %w", err)
+	}
+
+	cfg, err := m.buildConfig(n, gid)
 	if err != nil {
 		return fmt.Errorf("build config: %w", err)
 	}
@@ -225,6 +304,15 @@ func (m *Manager) Start(nodeID string) error {
 		return fmt.Errorf("write config: %w", err)
 	}
 
+	// 先设置防火墙（nftables），其中 skgid 规则已指向 xraya 组
+	mode := firewallMode(m.settings.ProxyMode)
+	if mode != firewall.ModeNone {
+		if err := firewall.New(mode, m.settings.TProxyPort,
+			filepath.Join(m.dataDir, "xraya.nft"), gid, m.settings.IPv6).Setup(); err != nil {
+			return fmt.Errorf("firewall: %w", err)
+		}
+	}
+
 	xrayBin := m.findXray()
 	ctx, cancel := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, xrayBin, "run", "-c", cfgPath)
@@ -232,12 +320,25 @@ func (m *Manager) Start(nodeID string) error {
 		"XRAY_LOCATION_ASSET="+m.dataDir,
 		"V2RAY_LOCATION_ASSET="+m.dataDir,
 	)
+	// xray 进程以 xraya GID 运行，nftables skgid 识别并放行其出站流量
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Credential: &syscall.Credential{
+			Uid:         0,
+			Gid:         gid,
+			Groups:      []uint32{gid},
+			NoSetGroups: false,
+		},
+	}
 
 	stdoutPipe, _ := cmd.StdoutPipe()
 	stderrPipe, _ := cmd.StderrPipe()
 
 	if err := cmd.Start(); err != nil {
 		cancel()
+		if mode != firewall.ModeNone {
+			firewall.New(mode, m.settings.TProxyPort,
+				filepath.Join(m.dataDir, "xraya.nft"), gid, m.settings.IPv6).Cleanup()
+		}
 		m.status = StatusError
 		m.errMsg = err.Error()
 		return fmt.Errorf("start xray: %w", err)
@@ -255,7 +356,7 @@ func (m *Manager) Start(nodeID string) error {
 	go m.captureLog(stderrPipe)
 	go func() {
 		cmd.Wait()
-		time.Sleep(200 * time.Millisecond) // let log goroutines flush
+		time.Sleep(200 * time.Millisecond)
 		m.mu.Lock()
 		if m.status == StatusRunning {
 			m.status = StatusError
@@ -274,17 +375,16 @@ func (m *Manager) Start(nodeID string) error {
 			m.errMsg = errDetail
 			m.st.Running = false
 			_ = m.db.SaveSetting("state", &m.st)
+			// xray 异常退出时也清理防火墙规则
+			if mode != firewall.ModeNone {
+				firewall.New(mode, m.settings.TProxyPort,
+					filepath.Join(m.dataDir, "xraya.nft"), gid, m.settings.IPv6).Cleanup()
+			}
 		}
 		m.mu.Unlock()
 	}()
 
-	go func() {
-		if err := m.setupFirewall(); err != nil {
-			log.Printf("xraya: firewall: %v", err)
-		}
-	}()
-
-	log.Printf("xraya: started [%s] node=%s", xrayBin, n.Name)
+	log.Printf("xraya: started [%s] node=%s gid=%d", xrayBin, n.Name, gid)
 	return nil
 }
 
@@ -295,7 +395,19 @@ func (m *Manager) Stop() {
 }
 
 func (m *Manager) stopLocked() {
-	m.cleanupFirewall()
+	s := m.settings
+	mode := firewallMode(s.ProxyMode)
+	if mode != firewall.ModeNone {
+		// GID 在 stop 时读取当前系统 group，找不到就传 0（cleanup 仍能删表）
+		gid := uint32(0)
+		if g, err := user.LookupGroup(xrayaGroup); err == nil {
+			if v, err := strconv.ParseUint(g.Gid, 10, 32); err == nil {
+				gid = uint32(v)
+			}
+		}
+		firewall.New(mode, s.TProxyPort,
+			filepath.Join(m.dataDir, "xraya.nft"), gid, s.IPv6).Cleanup()
+	}
 	if m.cancel != nil {
 		m.cancel()
 		m.cancel = nil
@@ -361,8 +473,8 @@ func (m *Manager) getNodeLocked(id string) (*node.Node, error) {
 	return &n, json.Unmarshal([]byte(e.Data), &n)
 }
 
-func (m *Manager) buildConfig(n *node.Node) ([]byte, error) {
-	return builder.Build(n, m.settings)
+func (m *Manager) buildConfig(n *node.Node, gid uint32) ([]byte, error) {
+	return builder.Build(n, m.settings, gid)
 }
 
 func (m *Manager) findXray() string {
@@ -379,26 +491,6 @@ func (m *Manager) findXray() string {
 		return p
 	}
 	return "xray"
-}
-
-func (m *Manager) setupFirewall() error {
-	s := m.settings
-	mode := firewallMode(s.ProxyMode)
-	if mode == firewall.ModeNone {
-		return nil
-	}
-	return firewall.New(mode, s.TProxyPort,
-		filepath.Join(m.dataDir, "xraya.nft")).Setup()
-}
-
-func (m *Manager) cleanupFirewall() {
-	s := m.settings
-	mode := firewallMode(s.ProxyMode)
-	if mode == firewall.ModeNone {
-		return
-	}
-	firewall.New(mode, s.TProxyPort,
-		filepath.Join(m.dataDir, "xraya.nft")).Cleanup()
 }
 
 func firewallMode(p builder.ProxyMode) firewall.Mode {
