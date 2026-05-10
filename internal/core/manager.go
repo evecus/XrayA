@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -254,10 +255,23 @@ func (m *Manager) Start(nodeID string) error {
 	go m.captureLog(stderrPipe)
 	go func() {
 		cmd.Wait()
+		time.Sleep(200 * time.Millisecond) // let log goroutines flush
 		m.mu.Lock()
 		if m.status == StatusRunning {
 			m.status = StatusError
-			m.errMsg = "xray exited unexpectedly"
+			errDetail := "xray exited unexpectedly"
+			if len(m.logLines) > 0 {
+				var errLines []string
+				for i := len(m.logLines) - 1; i >= 0 && len(errLines) < 3; i-- {
+					if l := strings.TrimSpace(m.logLines[i]); l != "" {
+						errLines = append([]string{l}, errLines...)
+					}
+				}
+				if len(errLines) > 0 {
+					errDetail = strings.Join(errLines, " | ")
+				}
+			}
+			m.errMsg = errDetail
 			m.st.Running = false
 			_ = m.db.SaveSetting("state", &m.st)
 		}
