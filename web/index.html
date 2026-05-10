@@ -8,18 +8,18 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg:       #0d0e11;
-  --surface:  #13151a;
-  --surface2: #1a1d24;
-  --border:   #252830;
-  --border2:  #2e3240;
-  --text:     #e2e4ec;
+  --bg:       #ffffff;
+  --surface:  #f5f7fa;
+  --surface2: #eaecf0;
+  --border:   #dde1e9;
+  --border2:  #c8cdd8;
+  --text:     #1a1d24;
   --muted:    #6b7080;
-  --accent:   #5b8def;
-  --accent2:  #3d6fd4;
-  --green:    #3ecf73;
-  --red:      #e05252;
-  --yellow:   #e8b84b;
+  --accent:   #3b6fd4;
+  --accent2:  #2a56b8;
+  --green:    #18a054;
+  --red:      #d43b3b;
+  --yellow:   #c98a00;
   --radius:   8px;
   --mono:     'JetBrains Mono', monospace;
   --sans:     'Syne', sans-serif;
@@ -47,9 +47,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   font-family: var(--mono); font-weight: 500; transition: all .2s;
   cursor: default; border: 1px solid transparent;
 }
-.status-pill.running  { background: #0e2a1a; color: var(--green); border-color: #1e4430; }
-.status-pill.stopped  { background: #1e1a1a; color: var(--muted); border-color: var(--border2); }
-.status-pill.error    { background: #2a0e0e; color: var(--red);   border-color: #4a1e1e; }
+.status-pill.running  { background: #e6f5ed; color: var(--green); border-color: #b3dfc6; }
+.status-pill.stopped  { background: #f0f1f4; color: var(--muted); border-color: var(--border2); }
+.status-pill.error    { background: #fdecea; color: var(--red);   border-color: #f5b8b8; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .status-pill.running .status-dot { animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
@@ -101,15 +101,15 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   display: inline-block; padding: 2px 7px; border-radius: 4px;
   font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .04em;
 }
-.proto-vmess     { background: #1a2a3a; color: #5b9de8; }
-.proto-vless     { background: #1a2840; color: #4eaaff; }
-.proto-trojan    { background: #1e2a1a; color: #5ec47c; }
-.proto-shadowsocks { background: #2a1e2a; color: #c47ee8; }
-.proto-hysteria2 { background: #2a1e14; color: #e8945b; }
-.proto-socks5    { background: #1e1e2a; color: #8888e8; }
-.proto-http      { background: #2a2a14; color: #c4c45b; }
+.proto-vmess     { background: #ddeeff; color: #1a5fa8; }
+.proto-vless     { background: #d8eeff; color: #1a4fa0; }
+.proto-trojan    { background: #dff0e6; color: #1a7040; }
+.proto-shadowsocks { background: #eeddf5; color: #7a1aaa; }
+.proto-hysteria2 { background: #ffeedd; color: #a04a0a; }
+.proto-socks5    { background: #e8e8f8; color: #3a3aaa; }
+.proto-http      { background: #f5f5d8; color: #7a7a10; }
 
-.connected-row td { background: #0e1f0e !important; }
+.connected-row td { background: #e6f5ed !important; }
 
 /* ── Buttons ── */
 .btn {
@@ -120,14 +120,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 }
 .btn-primary   { background: var(--accent);  color: #fff; }
 .btn-primary:hover { background: var(--accent2); }
-.btn-danger    { background: transparent; color: var(--red);   border: 1px solid #3a1e1e; }
-.btn-danger:hover  { background: #2a0e0e; }
+.btn-danger    { background: transparent; color: var(--red);   border: 1px solid #f5b8b8; }
+.btn-danger:hover  { background: #fdecea; }
 .btn-ghost     { background: transparent; color: var(--muted); border: 1px solid var(--border2); }
 .btn-ghost:hover   { color: var(--text); border-color: var(--border2); background: var(--surface2); }
-.btn-connect   { background: #0e2a1a; color: var(--green); border: 1px solid #1e4430; }
-.btn-connect:hover { background: #133820; }
-.btn-disconnect{ background: #2a1a0e; color: var(--yellow); border: 1px solid #3a2a0e; }
-.btn-disconnect:hover { background: #3a2a0e; }
+.btn-connect   { background: #e6f5ed; color: var(--green); border: 1px solid #b3dfc6; }
+.btn-connect:hover { background: #d0eddc; }
+.btn-disconnect{ background: #fff8e6; color: var(--yellow); border: 1px solid #f0d890; }
+.btn-disconnect:hover { background: #fdf0cc; }
 .btn-sm { padding: 3px 9px; font-size: 11px; }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
 
@@ -145,7 +145,7 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 
 /* ── Modal ── */
 .overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  position: fixed; inset: 0; background: rgba(0,0,0,.35);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000; backdrop-filter: blur(4px);
 }
@@ -153,7 +153,7 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
   background: var(--surface); border: 1px solid var(--border2);
   border-radius: 12px; width: min(480px, 95vw); max-height: 90vh;
   display: flex; flex-direction: column; overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  box-shadow: 0 24px 80px rgba(0,0,0,.18);
 }
 .modal-head { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; }
 .modal-head .close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; }
@@ -169,9 +169,9 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 
 /* ── Log view ── */
 .log-view {
-  background: var(--bg); border: 1px solid var(--border);
+  background: #f8f9fc; border: 1px solid var(--border);
   border-radius: 6px; padding: 12px; overflow-y: auto;
-  max-height: 320px; font-family: var(--mono); font-size: 11px; line-height: 1.7; color: #8a9ab0;
+  max-height: 320px; font-family: var(--mono); font-size: 11px; line-height: 1.7; color: #4a5568;
 }
 .log-view::-webkit-scrollbar { width: 4px; }
 .log-view::-webkit-scrollbar-track { background: transparent; }
@@ -193,9 +193,9 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
   border: 1px solid; opacity: 0; transform: translateY(8px);
   animation: toastIn .25s ease forwards, toastOut .25s ease 2.75s forwards;
 }
-.toast-success { background: #0e2a1a; color: var(--green); border-color: #1e4430; }
-.toast-error   { background: #2a0e0e; color: var(--red);   border-color: #4a1e1e; }
-.toast-info    { background: #0e1a2a; color: var(--accent); border-color: #1e2a40; }
+.toast-success { background: #e6f5ed; color: var(--green); border-color: #b3dfc6; }
+.toast-error   { background: #fdecea; color: var(--red);   border-color: #f5b8b8; }
+.toast-info    { background: #e8f0fd; color: var(--accent); border-color: #b3c8f0; }
 @keyframes toastIn  { to { opacity:1; transform:translateY(0); } }
 @keyframes toastOut { to { opacity:0; transform:translateY(8px); } }
 
@@ -241,7 +241,7 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
     </div>
     <span id="active-node-name" style="font-size:12px;color:var(--muted);font-family:var(--mono);display:none"></span>
     <div class="topbar-right">
-      <button class="btn btn-ghost btn-sm" onclick="openLogs()">📋 logs</button>
+      <button class="btn btn-ghost btn-sm" onclick="openLogs()">📋 日志</button>
       <button class="btn btn-ghost btn-sm" id="auth-btn" onclick="handleAuthBtn()">🔒</button>
     </div>
   </div>
@@ -249,9 +249,9 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
   <div class="main">
     <!-- Sidebar -->
     <div class="sidebar">
-      <button class="nav-btn active" id="nav-nodes" title="Nodes" onclick="switchTab('nodes')">⬡</button>
-      <button class="nav-btn" id="nav-subs" title="Subscriptions" onclick="switchTab('subs')">↻</button>
-      <button class="nav-btn" id="nav-settings" title="Settings" onclick="switchTab('settings')">⚙</button>
+      <button class="nav-btn active" id="nav-nodes" title="节点" onclick="switchTab('nodes')">⬡</button>
+      <button class="nav-btn" id="nav-subs" title="订阅" onclick="switchTab('subs')">↻</button>
+      <button class="nav-btn" id="nav-settings" title="设置" onclick="switchTab('settings')">⚙</button>
     </div>
 
     <!-- Content -->
@@ -260,24 +260,24 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
       <div id="tab-nodes">
         <div class="panel">
           <div class="panel-header">
-            Nodes
+            节点
             <span class="count" id="node-count">0</span>
             <div class="section-actions">
-              <button class="btn btn-ghost btn-sm" onclick="openImport()">＋ import</button>
+              <button class="btn btn-ghost btn-sm" onclick="openImport()">＋ 导入</button>
             </div>
           </div>
           <div class="panel-body">
             <div id="nodes-empty" class="empty" style="display:none">
               <div class="empty-icon">◈</div>
-              <p>No nodes yet.<br>Import links or add a subscription.</p>
+              <p>暂无节点。<br>请导入链接或添加订阅。</p>
             </div>
             <table class="node-table" id="nodes-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Address</th>
-                  <th>Protocol</th>
-                  <th>Group</th>
+                  <th>名称</th>
+                  <th>地址</th>
+                  <th>协议</th>
+                  <th>分组</th>
                   <th></th>
                 </tr>
               </thead>
@@ -291,16 +291,16 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
       <div id="tab-subs" style="display:none">
         <div class="panel">
           <div class="panel-header">
-            Subscriptions
+            订阅
             <span class="count" id="sub-count">0</span>
             <div class="section-actions">
-              <button class="btn btn-ghost btn-sm" onclick="openAddSub()">＋ add</button>
+              <button class="btn btn-ghost btn-sm" onclick="openAddSub()">＋ 添加</button>
             </div>
           </div>
           <div class="panel-body">
             <div id="subs-empty" class="empty" style="display:none">
               <div class="empty-icon">◈</div>
-              <p>No subscriptions yet.</p>
+              <p>暂无订阅。</p>
             </div>
             <table class="sub-table" id="subs-table">
               <tbody id="subs-tbody"></tbody>
@@ -312,47 +312,47 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
       <!-- Settings tab -->
       <div id="tab-settings" style="display:none">
         <div class="panel">
-          <div class="panel-header">Settings</div>
+          <div class="panel-header">设置</div>
           <div class="panel-body" style="padding:20px">
             <div class="settings-section">
-              <div class="settings-section-title">Proxy Mode</div>
+              <div class="settings-section-title">代理模式</div>
               <div class="settings-grid">
                 <div class="field">
-                  <label>Mode</label>
+                  <label>模式</label>
                   <select class="select" id="s-proxyMode">
                     <option value="socks5">Socks5 / HTTP</option>
-                    <option value="tproxy">TProxy (transparent TCP+UDP)</option>
-                    <option value="redir">Redirect (transparent TCP)</option>
+                    <option value="tproxy">TProxy（透明代理 TCP+UDP）</option>
+                    <option value="redir">Redirect（透明代理 TCP）</option>
                   </select>
                 </div>
                 <div class="field">
-                  <label>Socks5 Port</label>
+                  <label>Socks5 端口</label>
                   <input class="input" type="number" id="s-socks5Port" value="20170">
                 </div>
                 <div class="field">
-                  <label>HTTP Port</label>
+                  <label>HTTP 端口</label>
                   <input class="input" type="number" id="s-httpPort" value="20171">
                 </div>
                 <div class="field">
-                  <label>TProxy / Redir Port</label>
+                  <label>TProxy / Redir 端口</label>
                   <input class="input" type="number" id="s-tproxyPort" value="52345">
                 </div>
               </div>
             </div>
 
             <div class="settings-section">
-              <div class="settings-section-title">Routing</div>
+              <div class="settings-section-title">路由</div>
               <div class="field">
-                <label>Route Mode</label>
+                <label>路由模式</label>
                 <select class="select" id="s-routeMode" onchange="onRouteModeChange()">
-                  <option value="whitelist">Mainland Whitelist (proxy non-CN)</option>
-                  <option value="blacklist">GFW Blacklist (proxy blocked only)</option>
-                  <option value="routingA">Custom RoutingA</option>
+                  <option value="whitelist">大陆白名单（代理非CN流量）</option>
+                  <option value="blacklist">GFW黑名单（仅代理被封锁的）</option>
+                  <option value="routingA">自定义 RoutingA</option>
                 </select>
               </div>
               <div class="field" id="routingA-field" style="display:none">
-                <label>RoutingA Rules</label>
-                <textarea class="input" id="s-routingA" rows="8" placeholder="# RoutingA syntax&#10;default: proxy&#10;domain(geosite:cn) -> direct&#10;ip(geoip:cn) -> direct"></textarea>
+                <label>RoutingA 规则</label>
+                <textarea class="input" id="s-routingA" rows="8" placeholder="# RoutingA 语法&#10;default: proxy&#10;domain(geosite:cn) -> direct&#10;ip(geoip:cn) -> direct"></textarea>
               </div>
             </div>
 
@@ -360,32 +360,47 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
               <div class="settings-section-title">DNS</div>
               <div class="settings-grid">
                 <div class="field">
-                  <label>Foreign DNS (proxied)</label>
+                  <label>境外 DNS（走代理）</label>
                   <input class="input" id="s-dnsUpstream" value="8.8.8.8">
                 </div>
                 <div class="field">
-                  <label>Local DNS (direct)</label>
+                  <label>本地 DNS（直连）</label>
                   <input class="input" id="s-dnsLocal" value="114.114.114.114">
                 </div>
               </div>
             </div>
 
             <div class="settings-section">
-              <div class="settings-section-title">Options</div>
+              <div class="settings-section-title">选项</div>
               <div class="field flex items-center gap-2" style="display:flex">
                 <input type="checkbox" id="s-sniffing" style="accent-color:var(--accent)">
-                <label for="s-sniffing" style="text-transform:none;margin-bottom:0;font-size:13px;cursor:pointer">Enable traffic sniffing (domain detection)</label>
+                <label for="s-sniffing" style="text-transform:none;margin-bottom:0;font-size:13px;cursor:pointer">启用流量嗅探（域名检测）</label>
               </div>
               <div class="field flex items-center gap-2" style="display:flex;margin-top:10px">
                 <input type="checkbox" id="s-ipv6" style="accent-color:var(--accent)">
-                <label for="s-ipv6" style="text-transform:none;margin-bottom:0;font-size:13px;cursor:pointer">Enable IPv6</label>
+                <label for="s-ipv6" style="text-transform:none;margin-bottom:0;font-size:13px;cursor:pointer">启用 IPv6</label>
               </div>
             </div>
 
-            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error Dialog -->
+<div class="overlay" id="modal-error" style="display:none" onclick="if(event.target===this)closeModal('error')">
+  <div class="modal" style="width:min(520px,95vw)">
+    <div class="modal-head" style="color:var(--red)">⚠ <span id="error-dialog-title">错误</span> <button class="close" onclick="closeModal('error')">×</button></div>
+    <div class="modal-body">
+      <pre id="error-dialog-msg" style="font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-all;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px;margin:0;max-height:300px;overflow-y:auto"></pre>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted)">常见原因：① xray 未安装或不在 PATH / data/ 目录 ② geoip.dat / geosite.dat 缺失 ③ 节点配置无效</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="openLogs();closeModal('error')">查看日志</button>
+      <button class="btn btn-primary" onclick="closeModal('error')">关闭</button>
     </div>
   </div>
 </div>
@@ -398,16 +413,16 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 <!-- Import -->
 <div class="overlay" id="modal-import" style="display:none" onclick="if(event.target===this)closeModal('import')">
   <div class="modal">
-    <div class="modal-head">Import Nodes <button class="close" onclick="closeModal('import')">×</button></div>
+    <div class="modal-head">导入节点 <button class="close" onclick="closeModal('import')">×</button></div>
     <div class="modal-body">
       <div class="field">
-        <label>Share Links (one per line)</label>
+        <label>分享链接（每行一条）</label>
         <textarea class="input" id="import-links" rows="8" placeholder="vmess://...&#10;vless://...&#10;trojan://...&#10;ss://...&#10;hysteria2://...&#10;hy2://..."></textarea>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('import')">Cancel</button>
-      <button class="btn btn-primary" onclick="doImport()">Import</button>
+      <button class="btn btn-ghost" onclick="closeModal('import')">取消</button>
+      <button class="btn btn-primary" onclick="doImport()">导入</button>
     </div>
   </div>
 </div>
@@ -415,11 +430,11 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 <!-- Add Subscription -->
 <div class="overlay" id="modal-addsub" style="display:none" onclick="if(event.target===this)closeModal('addsub')">
   <div class="modal">
-    <div class="modal-head">Add Subscription <button class="close" onclick="closeModal('addsub')">×</button></div>
+    <div class="modal-head">添加订阅 <button class="close" onclick="closeModal('addsub')">×</button></div>
     <div class="modal-body">
       <div class="field">
-        <label>Name</label>
-        <input class="input" id="sub-name" placeholder="My Subscription">
+        <label>名称</label>
+        <input class="input" id="sub-name" placeholder="我的订阅">
       </div>
       <div class="field">
         <label>URL</label>
@@ -427,8 +442,8 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('addsub')">Cancel</button>
-      <button class="btn btn-primary" onclick="doAddSub()">Add &amp; Fetch</button>
+      <button class="btn btn-ghost" onclick="closeModal('addsub')">取消</button>
+      <button class="btn btn-primary" onclick="doAddSub()">添加并获取</button>
     </div>
   </div>
 </div>
@@ -437,8 +452,8 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 <div class="overlay" id="modal-logs" style="display:none" onclick="if(event.target===this)closeModal('logs')">
   <div class="modal" style="width:min(680px,95vw)">
     <div class="modal-head">
-      xray logs
-      <button class="btn btn-ghost btn-sm" style="margin-left:12px" onclick="fetchLogs()">↻ refresh</button>
+      xray 日志
+      <button class="btn btn-ghost btn-sm" style="margin-left:12px" onclick="fetchLogs()">↻ 刷新</button>
       <button class="close" onclick="closeModal('logs')">×</button>
     </div>
     <div class="modal-body">
@@ -450,15 +465,15 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 <!-- Login -->
 <div class="overlay" id="modal-login" style="display:none">
   <div class="modal" style="width:min(360px,95vw)">
-    <div class="modal-head">Authentication</div>
+    <div class="modal-head">身份验证</div>
     <div class="modal-body">
       <div class="field">
-        <label>Password</label>
-        <input class="input" type="password" id="login-password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+        <label>密码</label>
+        <input class="input" type="password" id="login-password" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-primary" onclick="doLogin()">Login</button>
+      <button class="btn btn-primary" onclick="doLogin()">登录</button>
     </div>
   </div>
 </div>
@@ -466,17 +481,17 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 <!-- Set Password -->
 <div class="overlay" id="modal-setpass" style="display:none" onclick="if(event.target===this)closeModal('setpass')">
   <div class="modal" style="width:min(360px,95vw)">
-    <div class="modal-head">Set Password <button class="close" onclick="closeModal('setpass')">×</button></div>
+    <div class="modal-head">设置密码 <button class="close" onclick="closeModal('setpass')">×</button></div>
     <div class="modal-body">
-      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Leave empty to disable authentication.</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">留空则关闭身份验证。</p>
       <div class="field">
-        <label>New Password</label>
-        <input class="input" type="password" id="new-password" placeholder="Leave empty to disable">
+        <label>新密码</label>
+        <input class="input" type="password" id="new-password" placeholder="留空则禁用">
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('setpass')">Cancel</button>
-      <button class="btn btn-primary" onclick="doSetPassword()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal('setpass')">取消</button>
+      <button class="btn btn-primary" onclick="doSetPassword()">保存</button>
     </div>
   </div>
 </div>
@@ -485,6 +500,7 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; min-heig
 // ── State ──────────────────────────────────────────────────────────────────
 let state = {
   status: 'stopped',
+  statusError: '',
   activeNodeId: null,
   nodes: [],
   subs: [],
@@ -541,20 +557,28 @@ async function pollStatus() {
 async function fetchStatus() {
   const d = await GET('/status');
   state.status = d.status;
+  state.statusError = d.error || '';
   state.activeNodeId = d.activeNode;
   renderStatus();
 }
+
+const STATUS_LABEL = { running: '运行中', stopped: '已停止', error: '错误' };
 
 function renderStatus() {
   const pill = document.getElementById('status-pill');
   const txt  = document.getElementById('status-text');
   const nameEl = document.getElementById('active-node-name');
   pill.className = 'status-pill ' + state.status;
-  txt.textContent = state.status;
-  if (state.activeNodeId && state.status === 'running') {
+  txt.textContent = STATUS_LABEL[state.status] || state.status;
+  if (state.status === 'error' && state.statusError) {
+    nameEl.textContent = '⚠ ' + state.statusError;
+    nameEl.style.display = '';
+    nameEl.style.color = 'var(--red)';
+  } else if (state.activeNodeId && state.status === 'running') {
     const n = state.nodes.find(x => x.id === state.activeNodeId);
     nameEl.textContent = n ? n.name : '';
     nameEl.style.display = '';
+    nameEl.style.color = 'var(--muted)';
   } else {
     nameEl.style.display = 'none';
   }
@@ -589,12 +613,12 @@ function renderNodes() {
       <td><span class="node-name" title="${esc(n.name)}">${esc(n.name)}</span></td>
       <td><span class="node-addr">${esc(n.address)}:${n.port}</span></td>
       <td><span class="proto-tag proto-${proto}">${proto}</span></td>
-      <td>${subName ? `<span class="group-badge">${esc(subName)}</span>` : '<span style="color:var(--muted);font-size:11px">manual</span>'}</td>
+      <td>${subName ? `<span class="group-badge">${esc(subName)}</span>` : '<span style="color:var(--muted);font-size:11px">手动添加</span>'}</td>
       <td>
         <div class="row-actions">
           ${connected
-            ? `<button class="btn btn-disconnect btn-sm" onclick="disconnect()">⏹ disconnect</button>`
-            : `<button class="btn btn-connect btn-sm" onclick="connect('${n.id}')">▶ connect</button>`
+            ? `<button class="btn btn-disconnect btn-sm" onclick="disconnect()">⏹ 断开</button>`
+            : `<button class="btn btn-connect btn-sm" onclick="connect('${n.id}')">▶ 连接</button>`
           }
           <button class="btn btn-danger btn-sm" onclick="deleteNode('${n.id}')">✕</button>
         </div>
@@ -606,21 +630,26 @@ function renderNodes() {
 async function connect(nodeId) {
   try {
     await POST('/connect', { nodeId });
-    toast('Connected', 'success');
+    toast('已连接', 'success');
     await fetchStatus();
-  } catch(e) { toast(e.message, 'error'); }
+  } catch(e) {
+    await fetchStatus(); // refresh — status may have flipped to error with errMsg
+    const msg = state.statusError || e.message || '未知错误';
+    showErrorDialog('连接失败', msg);
+  }
+}
 }
 
 async function disconnect() {
   try {
     await POST('/disconnect');
-    toast('Disconnected', 'info');
+    toast('已断开', 'info');
     await fetchStatus();
   } catch(e) { toast(e.message, 'error'); }
 }
 
 async function deleteNode(id) {
-  if (!confirm('Delete this node?')) return;
+  if (!confirm('确定删除该节点？')) return;
   try {
     await DELETE('/nodes/' + id);
     state.nodes = state.nodes.filter(n => n.id !== id);
@@ -637,7 +666,7 @@ async function doImport() {
   if (!links.length) return;
   try {
     const d = await POST('/nodes/import', { links });
-    toast(`Imported ${d.added} node(s)${d.failed?.length ? `, ${d.failed.length} failed` : ''}`, 'success');
+    toast(`已导入 ${d.added} 个节点${d.failed?.length ? `，${d.failed.length} 个失败` : ''}`, 'success');
     closeModal('import');
     document.getElementById('import-links').value = '';
     await fetchNodes();
@@ -664,7 +693,7 @@ function renderSubs() {
   empty.style.display = 'none'; table.style.display = '';
 
   tbody.innerHTML = state.subs.map(s => {
-    const updated = s.updated ? new Date(s.updated).toLocaleString() : 'never';
+    const updated = s.updated ? new Date(s.updated).toLocaleString('zh-CN') : '从未';
     const nodeCount = state.nodes.filter(n => n.groupId === s.id).length;
     return `
     <tr data-id="${s.id}">
@@ -672,10 +701,10 @@ function renderSubs() {
         <div style="font-weight:500">${esc(s.name)}</div>
         <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px">${esc(s.url)}</div>
       </td>
-      <td style="white-space:nowrap;font-size:11px;color:var(--muted)">${nodeCount} nodes<br>${updated}</td>
+      <td style="white-space:nowrap;font-size:11px;color:var(--muted)">${nodeCount} 个节点<br>${updated}</td>
       <td>
         <div class="row-actions" style="opacity:1">
-          <button class="btn btn-ghost btn-sm" onclick="updateSub('${s.id}')">↻ update</button>
+          <button class="btn btn-ghost btn-sm" onclick="updateSub('${s.id}')">↻ 更新</button>
           <button class="btn btn-danger btn-sm" onclick="deleteSub('${s.id}')">✕</button>
         </div>
       </td>
@@ -688,10 +717,10 @@ function openAddSub() { openModal('addsub'); }
 async function doAddSub() {
   const name = document.getElementById('sub-name').value.trim();
   const url  = document.getElementById('sub-url').value.trim();
-  if (!name || !url) { toast('Name and URL are required', 'error'); return; }
+  if (!name || !url) { toast('名称和URL不能为空', 'error'); return; }
   try {
     await POST('/subscriptions', { name, url });
-    toast('Subscription added, fetching...', 'success');
+    toast('订阅已添加，正在获取...', 'success');
     closeModal('addsub');
     document.getElementById('sub-name').value = '';
     document.getElementById('sub-url').value = '';
@@ -701,15 +730,15 @@ async function doAddSub() {
 
 async function updateSub(id) {
   try {
-    toast('Updating...', 'info');
+    toast('正在更新...', 'info');
     await POST('/subscriptions/' + id + '/update');
-    toast('Updated', 'success');
+    toast('更新成功', 'success');
     await Promise.all([fetchSubs(), fetchNodes()]);
   } catch(e) { toast(e.message, 'error'); }
 }
 
 async function deleteSub(id) {
-  if (!confirm('Delete subscription and all its nodes?')) return;
+  if (!confirm('确定删除该订阅及其所有节点？')) return;
   try {
     await DELETE('/subscriptions/' + id);
     await Promise.all([fetchSubs(), fetchNodes()]);
@@ -761,7 +790,7 @@ async function saveSettings() {
   try {
     await PUT('/settings', s);
     state.settings = s;
-    toast('Settings saved', 'success');
+    toast('设置已保存', 'success');
   } catch(e) { toast(e.message, 'error'); }
 }
 
@@ -781,7 +810,7 @@ async function fetchLogs() {
       if (/error|ERR|WARN/i.test(l)) cls = 'log-line-err';
       else if (/warn/i.test(l)) cls = 'log-line-warn';
       return `<div class="${cls}">${esc(l)}</div>`;
-    }).join('') || '<div style="color:var(--muted)">No logs yet.</div>';
+    }).join('') || '<div style="color:var(--muted)">暂无日志。</div>';
     el.scrollTop = el.scrollHeight;
   } catch(e) {}
 }
@@ -796,7 +825,7 @@ async function doLogin() {
     closeModal('login');
     document.getElementById('login-password').value = '';
     await refresh();
-  } catch(e) { toast('Invalid password', 'error'); }
+  } catch(e) { toast('密码错误', 'error'); }
 }
 
 async function handleAuthBtn() {
@@ -811,7 +840,7 @@ async function doSetPassword() {
   const pw = document.getElementById('new-password').value;
   try {
     await POST('/auth/password', { password: pw });
-    toast(pw ? 'Password set' : 'Authentication disabled', 'success');
+    toast(pw ? '密码已设置' : '身份验证已关闭', 'success');
     closeModal('setpass');
     if (!pw) { state.token = ''; localStorage.removeItem('xraya_token'); }
   } catch(e) { toast(e.message, 'error'); }
@@ -828,6 +857,12 @@ function switchTab(name) {
 // ── Modal helpers ──────────────────────────────────────────────────────────
 function openModal(name)  { document.getElementById('modal-'+name).style.display = 'flex'; }
 function closeModal(name) { document.getElementById('modal-'+name).style.display = 'none'; }
+
+function showErrorDialog(title, msg) {
+  document.getElementById('error-dialog-title').textContent = title;
+  document.getElementById('error-dialog-msg').textContent = msg;
+  openModal('error');
+}
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 function toast(msg, type='info') {
