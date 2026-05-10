@@ -207,11 +207,12 @@ table inet xraya {
 	var cmds string
 	if m.mode == ModeTProxy {
 		// TProxy 需要策略路由：mark 0x40 的包走 table 100 → lo
+		// 使用 "replace" 而非 "add"，保证幂等（重启 xraya 不会因规则已存在而报错）
 		cmds = fmt.Sprintf(
 			"ip rule add fwmark 0x40/0xc0 table 100\n"+
-				"ip route add local 0.0.0.0/0 dev lo table 100\n"+
+				"ip route replace local 0.0.0.0/0 dev lo table 100\n"+
 				"ip -6 rule add fwmark 0x40/0xc0 table 100\n"+
-				"ip -6 route add local ::/0 dev lo table 100\n"+
+				"ip -6 route replace local ::/0 dev lo table 100\n"+
 				"sysctl -w net.ipv4.ip_forward=1\n"+
 				"sysctl -w net.ipv6.conf.all.forwarding=1\n"+
 				"nft -f %s\n", m.nftPath)
@@ -232,7 +233,7 @@ func (m *Manager) iptablesTproxySetup() string {
 	return fmt.Sprintf(`
 sysctl -w net.ipv4.ip_forward=1
 ip rule add fwmark 0x40/0xc0 table 100
-ip route add local 0.0.0.0/0 dev lo table 100
+ip route replace local 0.0.0.0/0 dev lo table 100
 iptables -w 2 -t mangle -N XRAYA_MARK
 iptables -w 2 -t mangle -N XRAYA_RULE
 iptables -w 2 -t mangle -N XRAYA_OUT
@@ -328,6 +329,11 @@ func runScript(script string) error {
 		}
 		parts := strings.Fields(line)
 		if err := exec.Command(parts[0], parts[1:]...).Run(); err != nil {
+			// "ip rule add" returns exit 2 when the rule already exists
+			// (RTNETLINK: File exists). This is harmless on re-start.
+			if parts[0] == "ip" && len(parts) >= 3 && parts[1] == "rule" && parts[2] == "add" {
+				continue
+			}
 			errs = append(errs, fmt.Sprintf("%s: %v", line, err))
 		}
 	}

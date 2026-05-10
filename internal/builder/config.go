@@ -457,26 +457,24 @@ func hy2Outbound(n *node.Node) (map[string]interface{}, error) {
 		}
 	}
 
-	tlsSettings := map[string]interface{}{
-		"serverName":  x.SNI,
-		"fingerprint": "chrome",
+	// xray-core hysteria2 protocol does NOT use streamSettings.
+	// "network":"hysteria2" is not a valid transport and causes:
+	//   "unknown transport protocol: hysteria2"
+	// TLS options are embedded directly in the server object.
+	if x.SNI != "" {
+		server["sni"] = x.SNI
 	}
 	if x.Insecure {
-		tlsSettings["allowInsecure"] = true
+		server["insecure"] = true
 	}
 	if x.PinSHA256 != "" {
-		tlsSettings["pinnedPeerCertificateChainSha256"] = x.PinSHA256
+		server["pinnedPeerCertificateChainSha256"] = x.PinSHA256
 	}
 
 	return map[string]interface{}{
 		"protocol": "hysteria2",
 		"settings": map[string]interface{}{
 			"servers": []interface{}{server},
-		},
-		"streamSettings": map[string]interface{}{
-			"network":     "hysteria2",
-			"security":    "tls",
-			"tlsSettings": tlsSettings,
 		},
 	}, nil
 }
