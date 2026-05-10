@@ -48,7 +48,7 @@ func DefaultSettings() Settings {
 		Socks5Port: 20170,
 		HTTPPort:   20171,
 		TProxyPort: 52345,
-		DNSPort:    53,
+		DNSPort:    15353,
 		DNSUPD:     "8.8.8.8",
 		DNSLocal:   "114.114.114.114",
 		Sniffing:   true,
@@ -141,6 +141,7 @@ func buildInbounds(s Settings) []interface{} {
 			"protocol": "http",
 			"sniffing": sniff,
 		})
+		// socks5 模式不做 DNS 劫持，不生成 dns-in
 
 	case ProxyModeTProxy:
 		// TProxy inbound (TCP+UDP)
@@ -161,7 +162,7 @@ func buildInbounds(s Settings) []interface{} {
 				},
 				"sniffing": sniff,
 			},
-			// DNS hijack inbound
+			// DNS 劫持 inbound（高位端口，防火墙重定向 :53 → 此端口）
 			dnsInbound(s),
 		)
 
@@ -179,7 +180,7 @@ func buildInbounds(s Settings) []interface{} {
 				},
 				"sniffing": sniff,
 			},
-			// DNS hijack inbound
+			// DNS 劫持 inbound（高位端口，防火墙重定向 :53 → 此端口）
 			dnsInbound(s),
 		)
 	}
@@ -188,6 +189,8 @@ func buildInbounds(s Settings) []interface{} {
 }
 
 func dnsInbound(s Settings) map[string]interface{} {
+	// 监听高位端口（默认 15353），防火墙将 :53 流量重定向到此端口。
+	// 不直接监听 53，避免与 systemd-resolved 等系统 DNS 服务冲突。
 	return map[string]interface{}{
 		"tag":      "dns-in",
 		"listen":   "0.0.0.0",
