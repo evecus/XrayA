@@ -218,61 +218,42 @@ function openLogsFromError() {
         <p v-else>该订阅暂无节点。<br>点击「更新」获取订阅内容。</p>
       </div>
 
-      <!-- 节点表格 -->
-      <table v-else class="tbl">
-        <thead>
-          <tr>
-            <th>名称</th>
-            <th>地址</th>
-            <th>协议</th>
-            <th style="text-align:right">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="node in displayedNodes"
-            :key="node.id"
-            :class="{
-              'row-active': store.activeNodeId === node.id && store.isRunning,
-              'row-selected': store.selectedNodeId === node.id && !store.isRunning
-            }"
-          >
-            <td>
-              <div class="node-name-cell">
-                <span v-if="store.selectedNodeId === node.id" class="selected-dot"></span>
-                <span class="truncate" style="max-width:220px;font-weight:500" :title="node.name">
-                  {{ node.name }}
-                </span>
-              </div>
-            </td>
-            <td>
-              <span class="mono muted" style="font-size:12px">{{ node.address }}:{{ node.port }}</span>
-            </td>
-            <td>
-              <span :class="['proto-tag', `proto-${node.protocol?.toLowerCase()}`]">
-                {{ node.protocol }}
-              </span>
-            </td>
-            <td>
-              <div class="row-actions">
-                <button
-                  :class="['btn btn-select btn-sm', store.selectedNodeId === node.id ? 'selected' : '']"
-                  :disabled="store.isRunning"
-                  @click="selectNode(node.id)"
-                  :title="store.isRunning ? '运行中无法切换节点' : '选择此节点'"
-                >
-                  <svg v-if="store.selectedNodeId === node.id" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
-                  {{ store.selectedNodeId === node.id ? '已选中' : '选择' }}
-                </button>
-                <button class="btn btn-danger btn-sm" @click="deleteNode(node.id)" title="删除节点">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- 节点双列网格 -->
+      <div v-else class="node-grid">
+        <div
+          v-for="node in displayedNodes"
+          :key="node.id"
+          :class="[
+            'node-card',
+            store.activeNodeId === node.id && store.isRunning ? 'node-card--active' : '',
+            store.selectedNodeId === node.id && !store.isRunning ? 'node-card--selected' : ''
+          ]"
+        >
+          <div class="node-card-left">
+            <span v-if="store.selectedNodeId === node.id" class="selected-dot"></span>
+            <div class="node-card-info">
+              <span class="node-card-name" :title="node.name">{{ node.name }}</span>
+              <span class="node-card-addr mono muted">{{ node.address }}:{{ node.port }}</span>
+            </div>
+          </div>
+          <div class="node-card-right">
+            <span :class="['proto-tag', `proto-${node.protocol?.toLowerCase()}`]">{{ node.protocol }}</span>
+            <button
+              :class="['btn btn-select btn-sm', store.selectedNodeId === node.id ? 'selected' : '']"
+              :disabled="store.isRunning"
+              @click="selectNode(node.id)"
+              :title="store.isRunning ? '运行中无法切换节点' : '选择此节点'"
+            >
+              <svg v-if="store.selectedNodeId === node.id" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+              {{ store.selectedNodeId === node.id ? '已选中' : '选择' }}
+            </button>
+            <button class="btn btn-danger btn-sm" @click="deleteNode(node.id)" title="删除节点">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 提示：运行时选中状态 -->
@@ -344,7 +325,7 @@ function openLogsFromError() {
 </template>
 
 <style scoped>
-.nodes-page { display: flex; flex-direction: column; gap: 12px; max-width: 1100px; }
+.nodes-page { display: flex; flex-direction: column; gap: 12px; width: 100%; }
 
 /* Tab bar */
 .tab-bar {
@@ -353,9 +334,7 @@ function openLogsFromError() {
   border-radius: var(--radius); padding: 8px 12px;
   box-shadow: var(--shadow-sm); flex-wrap: wrap;
 }
-
 .tab-list { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
-
 .tab-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 12px; border-radius: 6px; border: 1px solid transparent;
@@ -363,30 +342,61 @@ function openLogsFromError() {
   background: transparent; color: var(--muted2); white-space: nowrap;
 }
 .tab-btn:hover { background: var(--surface2); color: var(--text); }
-.tab-btn.active {
-  background: var(--accent-bg); color: var(--accent);
-  border-color: var(--accent-glow); font-weight: 600;
-}
+.tab-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent-glow); font-weight: 600; }
 .tab-count {
   font-family: var(--mono); font-size: 10px;
   background: var(--surface2); border: 1px solid var(--border);
-  padding: 1px 5px; border-radius: 10px;
-  color: var(--muted); transition: all .14s;
+  padding: 1px 5px; border-radius: 10px; color: var(--muted); transition: all .14s;
 }
-.tab-btn.active .tab-count {
-  background: var(--accent-bg); border-color: var(--accent-glow); color: var(--accent);
-}
-
+.tab-btn.active .tab-count { background: var(--accent-bg); border-color: var(--accent-glow); color: var(--accent); }
 .tab-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
 
-/* Nodes card */
+/* Nodes card wrapper */
 .nodes-card { flex: 1; }
 
-/* Row states */
-.tbl tbody tr.row-selected td { background: rgba(59,110,245,.04); }
-.tbl tbody tr.row-selected:hover td { background: rgba(59,110,245,.08); }
+/* ── 双列节点网格 ── */
+.node-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
 
-.node-name-cell { display: flex; align-items: center; gap: 7px; }
+/* 每张节点卡片 */
+.node-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  transition: background .12s; gap: 10px; min-width: 0;
+}
+/* 右列卡片加左边框作为分隔 */
+.node-card:nth-child(even) { border-left: 1px solid var(--border); }
+/* 最后两行去掉底边框 */
+.node-card:nth-last-child(-n+2) { border-bottom: none; }
+/* 如果总数为奇数，最后一个也去掉底边框 */
+.node-card:last-child { border-bottom: none; }
+
+.node-card:hover { background: var(--surface2); }
+.node-card--selected { background: rgba(59,110,245,.04); }
+.node-card--selected:hover { background: rgba(59,110,245,.08); }
+.node-card--active { background: var(--green-bg); }
+.node-card--active:hover { background: rgba(22,163,74,.12); }
+
+.node-card-left {
+  display: flex; align-items: center; gap: 8px;
+  min-width: 0; flex: 1; overflow: hidden;
+}
+.node-card-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.node-card-name {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.node-card-addr {
+  font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.node-card-right {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+
 .selected-dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent); flex-shrink: 0;
@@ -406,5 +416,13 @@ function openLogsFromError() {
 .divider-label {
   text-align: center; font-size: 11px; color: var(--muted);
   margin: 4px 0 14px; letter-spacing: .04em;
+}
+
+/* 小屏降为单列 */
+@media (max-width: 700px) {
+  .node-grid { grid-template-columns: 1fr; }
+  .node-card:nth-child(even) { border-left: none; }
+  .node-card:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .node-card:last-child { border-bottom: none; }
 }
 </style>
