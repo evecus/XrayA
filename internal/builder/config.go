@@ -442,42 +442,44 @@ func hy2Outbound(n *node.Node) (map[string]interface{}, error) {
 	if err := json.Unmarshal(n.Extra, &x); err != nil {
 		return nil, err
 	}
-	tlsSettings := map[string]interface{}{
-		"serverName":    x.SNI,
-		"allowInsecure": x.Insecure,
-		"alpn":          []string{"h3"},
-		"fingerprint":   "chrome",
-	}
-	if x.PinSHA256 != "" {
-		tlsSettings["pinnedPeerCertificateChainSha256"] = x.PinSHA256
-	}
-	hySettings := map[string]interface{}{
-		"version": 2,
-		"auth":    x.Password,
+
+	server := map[string]interface{}{
+		"address":  n.Address,
+		"port":     n.Port,
+		"password": x.Password,
 	}
 	if x.Obfs != "" {
-		hySettings["obfs"] = map[string]interface{}{
+		server["obfs"] = map[string]interface{}{
 			"type": x.Obfs,
 			"salamander": map[string]interface{}{
 				"password": x.ObfsParam,
 			},
 		}
 	}
+
+	tlsSettings := map[string]interface{}{
+		"serverName":  x.SNI,
+		"fingerprint": "chrome",
+	}
+	if x.Insecure {
+		tlsSettings["allowInsecure"] = true
+	}
+	if x.PinSHA256 != "" {
+		tlsSettings["pinnedPeerCertificateChainSha256"] = x.PinSHA256
+	}
+
 	return map[string]interface{}{
-		"protocol": "hysteria",
+		"protocol": "hysteria2",
 		"settings": map[string]interface{}{
-			"address": n.Address,
-			"port":    n.Port,
+			"servers": []interface{}{server},
 		},
 		"streamSettings": map[string]interface{}{
-			"network":          "hysteria",
-			"security":         "tls",
-			"tlsSettings":      tlsSettings,
-			"hysteriaSettings": hySettings,
+			"network":     "hysteria2",
+			"security":    "tls",
+			"tlsSettings": tlsSettings,
 		},
 	}, nil
 }
-
 func socks5Outbound(n *node.Node) (map[string]interface{}, error) {
 	var x node.ExtraSocks5
 	if err := json.Unmarshal(n.Extra, &x); err != nil {
