@@ -21,13 +21,14 @@ const (
 type Manager struct {
 	mode     Mode
 	port     int   // TProxy / Redir 端口
+	dnsPort  int   // DNS 劫持监听端口（xray dns-in，默认 15353）
 	nftPath  string
 	gid      uint32
 	ipv6     bool
 }
 
-func New(mode Mode, port int, nftPath string, gid uint32, ipv6 bool) *Manager {
-	return &Manager{mode: mode, port: port, nftPath: nftPath, gid: gid, ipv6: ipv6}
+func New(mode Mode, port int, dnsPort int, nftPath string, gid uint32, ipv6 bool) *Manager {
+	return &Manager{mode: mode, port: port, dnsPort: dnsPort, nftPath: nftPath, gid: gid, ipv6: ipv6}
 }
 
 // Setup 安装 nftables 规则并配置策略路由（仅 tproxy 模式需要）。
@@ -179,11 +180,24 @@ func (m *Manager) buildRuleChain() string {
 // buildPrerouting 生成 xraya_pre 链：
 // - lo 接口：只处理已打 mark 的包（output 重路由回来的本机流量）
 // - 其他接口：调用决策链（局域网代理）
+// - DNS 劫持：将发往 :53 的流量重定向到 xray dns-in 高位端口
 func (m *Manager) buildPrerouting() string {
 	var s strings.Builder
 	s.WriteString("\n    chain xraya_pre {\n")
 
 	if m.mode == ModeTProxy {
+		// ── DNS 劫持（tproxy 模式）──────────────────────────────────────────
+		// 先于通用 tproxy 规则匹配，将所有发往 53 的 TCP/UDP 重定向到 dns-in 端口。
+		// iifname != "lo" 避免处理 lo 上的回环 DNS（本机 xray 自身发出的已由 output 链豁免）。
+		s.WriteString(fmt.Sprintf(
+			"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 tproxy ip  to 127.0.0.1:%d\n",
+			m.dnsPort))
+		if m.ipv6 {
+			s.WriteString(fmt.Sprintf(
+				"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 tproxy ip6 to [::1]:%d\n",
+				m.dnsPort))
+		}
+
 		// lo 上没打 mark 的包直接放行（避免处理非 tproxy 流量）
 		s.WriteString("        iifname \"lo\" meta mark & 0xc0 != 0x40 return\n")
 		// 已打 mark 的包转给 tproxy
@@ -205,6 +219,20 @@ func (m *Manager) buildPrerouting() string {
 			s.WriteString(fmt.Sprintf(
 				"        iifname != \"lo\" meta nfproto ipv6 meta l4proto { tcp, udp } meta mark & 0xc0 == 0x40 tproxy ip6 to [::1]:%d\n",
 				m.port))
+		}
+	}
+
+	if m.mode == ModeRedir {
+		// ── DNS 劫持（redir 模式）───────────────────────────────────────────
+		// redir 不支持 tproxy，用 DNAT 把 :53 重定向到 dns-in 高位端口。
+		// xray dokodemo-door 的 followRedirect=true 对 DNAT UDP 可以正确还原目标。
+		s.WriteString(fmt.Sprintf(
+			"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 dnat ip  to 127.0.0.1:%d\n",
+			m.dnsPort))
+		if m.ipv6 {
+			s.WriteString(fmt.Sprintf(
+				"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 dnat ip6 to [::1]:%d\n",
+				m.dnsPort))
 		}
 	}
 
