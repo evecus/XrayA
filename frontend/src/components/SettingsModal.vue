@@ -14,6 +14,7 @@ const form = ref({
   socks5Port:  20170,
   httpPort:    20171,
   tproxyPort:  52345,
+  dnsPort:     15353,
   dnsUpstream: '8.8.8.8',
   dnsLocal:    '114.114.114.114',
   routingA:    '',
@@ -101,6 +102,10 @@ onMounted(loadSettings)
           <div class="field">
             <label>本地 DNS（直连）</label>
             <input class="input" v-model="form.dnsLocal" placeholder="114.114.114.114">
+          </div>
+          <div class="field" v-if="form.proxyMode !== 'socks5'">
+            <label>DNS 劫持端口</label>
+            <input class="input" type="number" v-model.number="form.dnsPort" placeholder="15353">
           </div>
         </div>
       </div>
