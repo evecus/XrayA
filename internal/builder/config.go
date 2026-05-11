@@ -89,20 +89,26 @@ func buildLog() map[string]interface{} {
 
 func buildDNS(s Settings) map[string]interface{} {
 	servers := []interface{}{
-		// Foreign domains → upstream (proxy-routed)
+		// Foreign domains → upstream DNS via proxy outbound
 		map[string]interface{}{
-			"address": s.DNSUPD,
-			"port":    53,
-			"domains": []string{"geosite:geolocation-!cn"},
+			"address":      s.DNSUPD,
+			"port":         53,
+			"domains":      []string{"geosite:geolocation-!cn"},
+			"outboundTag":  "proxy",
 		},
-		// CN domains → local
+		// CN domains → local DNS via direct outbound
 		map[string]interface{}{
-			"address": s.DNSLocal,
-			"port":    53,
-			"domains": []string{"geosite:cn"},
+			"address":      s.DNSLocal,
+			"port":         53,
+			"domains":      []string{"geosite:cn"},
+			"outboundTag":  "direct",
 		},
-		// Fallback
-		s.DNSLocal,
+		// Fallback → local DNS direct
+		map[string]interface{}{
+			"address":      s.DNSLocal,
+			"port":         53,
+			"outboundTag":  "direct",
+		},
 	}
 	return map[string]interface{}{
 		"tag":     "dns",
