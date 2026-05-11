@@ -307,7 +307,7 @@ func (m *Manager) Start(nodeID string) error {
 	// 先设置防火墙（nftables），其中 skgid 规则已指向 xraya 组
 	mode := firewallMode(m.settings.ProxyMode)
 	if mode != firewall.ModeNone {
-		if err := firewall.New(mode, m.settings.TProxyPort,
+		if err := firewall.New(mode, m.settings.TProxyPort, m.settings.DNSPort,
 			filepath.Join(m.dataDir, "xraya.nft"), gid, m.settings.IPv6).Setup(); err != nil {
 			return fmt.Errorf("firewall: %w", err)
 		}
@@ -336,7 +336,7 @@ func (m *Manager) Start(nodeID string) error {
 	if err := cmd.Start(); err != nil {
 		cancel()
 		if mode != firewall.ModeNone {
-			firewall.New(mode, m.settings.TProxyPort,
+			firewall.New(mode, m.settings.TProxyPort, m.settings.DNSPort,
 				filepath.Join(m.dataDir, "xraya.nft"), gid, m.settings.IPv6).Cleanup()
 		}
 		m.status = StatusError
@@ -377,7 +377,7 @@ func (m *Manager) Start(nodeID string) error {
 			_ = m.db.SaveSetting("state", &m.st)
 			// xray 异常退出时也清理防火墙规则
 			if mode != firewall.ModeNone {
-				firewall.New(mode, m.settings.TProxyPort,
+				firewall.New(mode, m.settings.TProxyPort, m.settings.DNSPort,
 					filepath.Join(m.dataDir, "xraya.nft"), gid, m.settings.IPv6).Cleanup()
 			}
 		}
@@ -405,7 +405,7 @@ func (m *Manager) stopLocked() {
 				gid = uint32(v)
 			}
 		}
-		firewall.New(mode, s.TProxyPort,
+		firewall.New(mode, s.TProxyPort, s.DNSPort,
 			filepath.Join(m.dataDir, "xraya.nft"), gid, s.IPv6).Cleanup()
 	}
 	if m.cancel != nil {
