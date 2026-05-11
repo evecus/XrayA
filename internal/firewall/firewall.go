@@ -188,13 +188,14 @@ func (m *Manager) buildPrerouting() string {
 	if m.mode == ModeTProxy {
 		// ── DNS 劫持（tproxy 模式）──────────────────────────────────────────
 		// 先于通用 tproxy 规则匹配，将所有发往 53 的 TCP/UDP 重定向到 dns-in 端口。
+		// 必须同时打 mark 0x40，策略路由（table 100）才能把包路由到 lo 让 tproxy 生效。
 		// iifname != "lo" 避免处理 lo 上的回环 DNS（本机 xray 自身发出的已由 output 链豁免）。
 		s.WriteString(fmt.Sprintf(
-			"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 tproxy ip  to 127.0.0.1:%d\n",
+			"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 meta mark set meta mark | 0x00000040 tproxy ip  to 127.0.0.1:%d\n",
 			m.dnsPort))
 		if m.ipv6 {
 			s.WriteString(fmt.Sprintf(
-				"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 tproxy ip6 to [::1]:%d\n",
+				"        iifname != \"lo\" meta l4proto { tcp, udp } th dport 53 meta mark set meta mark | 0x00000040 tproxy ip6 to [::1]:%d\n",
 				m.dnsPort))
 		}
 
